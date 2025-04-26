@@ -1,10 +1,10 @@
-import React, { useEffect, useRef, useState } from 'react';
-import styled from 'styled-components';
-import SyncIndicator from './SyncIndicator'
-import { Note } from '../utils/notes'
-import { Button } from '../styles/styled';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faExclamationCircle } from '@fortawesome/free-solid-svg-icons';
+import React, { useEffect, useRef, useState } from "react";
+import styled from "styled-components";
+import SyncIndicator from "./SyncIndicator";
+import { Note } from "../utils/notes";
+import { Button } from "../styles/styled";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faExclamationCircle } from "@fortawesome/free-solid-svg-icons";
 
 const NoteItemWrapper = styled.div`
   margin-bottom: 1rem;
@@ -25,7 +25,7 @@ const NoteFrame = styled.li<{ isSubmitted?: boolean }>`
   width: 500px;
   word-wrap: break-word;
   overflow: visible;
-  background-color: ${props => (!props.isSubmitted ? '#eee' : 'transparent')};
+  background-color: ${(props) => (!props.isSubmitted ? "#eee" : "transparent")};
 
   .note-timestamp {
     position: absolute;
@@ -78,6 +78,19 @@ const Content = styled.div`
   max-width: 100%;
   margin-bottom: 1rem;
   padding-bottom: 0.25rem;
+`;
+
+const TagList = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: 5px;
+`;
+
+const Tag = styled.span`
+  background-color: #e0e0e0;
+  padding: 0.3rem 0.6rem;
+  border-radius: 4px;
+  margin: 0.2rem;
 `;
 
 const SaveButton = styled(Button)`
@@ -140,12 +153,16 @@ const OfflineIndicatorText = styled.span`
 `;
 
 interface NoteItemProps {
-  note: Note,
+  note: Note;
   onDeleteNote: (noteId: string) => Promise<void>;
   onEditNote: (noteId: string, updatedTitle: string) => Promise<void>;
 }
 
-const NoteItem: React.FC<NoteItemProps> = ({ note, onDeleteNote, onEditNote }) => {
+const NoteItem: React.FC<NoteItemProps> = ({
+  note,
+  onDeleteNote,
+  onEditNote,
+}) => {
   const [isSyncing, setSyncing] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [title, setTitle] = useState(note.title);
@@ -161,7 +178,7 @@ const NoteItem: React.FC<NoteItemProps> = ({ note, onDeleteNote, onEditNote }) =
         await onDeleteNote(note.localId);
       }
     } catch (error) {
-      console.error('Error deleting note:', error);
+      console.error("Error deleting note:", error);
     } finally {
       // Set syncing state back to false after the request is complete
       setSyncing(false);
@@ -189,7 +206,7 @@ const NoteItem: React.FC<NoteItemProps> = ({ note, onDeleteNote, onEditNote }) =
 
   useEffect(() => {
     if (isEditing && textareaRef.current) {
-      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = "auto";
       textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
       textareaRef.current.value = note.title;
     }
@@ -198,9 +215,11 @@ const NoteItem: React.FC<NoteItemProps> = ({ note, onDeleteNote, onEditNote }) =
   return (
     <NoteItemWrapper>
       <NoteFrame isSubmitted={note._id !== undefined}>
-        {isSyncing && <SyncIndicator/>}
+        {isSyncing && <SyncIndicator />}
         <DeleteButton onClick={handleDelete}>[x]</DeleteButton>
-        <p className="note-timestamp">{new Date(note.createdAt).toUTCString()}</p>
+        <p className="note-timestamp">
+          {new Date(note.createdAt).toUTCString()}
+        </p>
         <div className="note-content">
           {isEditing ? (
             <textarea
@@ -213,6 +232,11 @@ const NoteItem: React.FC<NoteItemProps> = ({ note, onDeleteNote, onEditNote }) =
             <Content>{note.title}</Content>
           )}
         </div>
+        <div className="">
+          {note.tags && note.tags?.length > 0 && (
+            <TagList>{note.tags[0]}</TagList>
+          )}
+        </div>
         {isEditing ? (
           <div className="edit-buttons">
             <SaveButton onClick={handleSave}>Save</SaveButton>
@@ -222,12 +246,16 @@ const NoteItem: React.FC<NoteItemProps> = ({ note, onDeleteNote, onEditNote }) =
           <EditButton onClick={handleEdit}>Edit</EditButton>
         )}
       </NoteFrame>
-      {(note.localDeleteSynced === false || note.localEditSynced === false || note._id === undefined) && (
+      {(note.localDeleteSynced === false ||
+        note.localEditSynced === false ||
+        note._id === undefined) && (
         <OfflineIndicatorWrapper>
           {note.localDeleteSynced === false && (
             <OfflineIndicator>
               <OfflineIndicatorIcon icon={faExclamationCircle} />
-              <OfflineIndicatorText>Note deletion not synced</OfflineIndicatorText>
+              <OfflineIndicatorText>
+                Note deletion not synced
+              </OfflineIndicatorText>
             </OfflineIndicator>
           )}
           {note.localEditSynced === false && (
@@ -239,7 +267,9 @@ const NoteItem: React.FC<NoteItemProps> = ({ note, onDeleteNote, onEditNote }) =
           {note._id === undefined && (
             <OfflineIndicator>
               <OfflineIndicatorIcon icon={faExclamationCircle} />
-              <OfflineIndicatorText>Note submission not synced</OfflineIndicatorText>
+              <OfflineIndicatorText>
+                Note submission not synced
+              </OfflineIndicatorText>
             </OfflineIndicator>
           )}
         </OfflineIndicatorWrapper>

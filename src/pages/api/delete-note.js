@@ -1,4 +1,5 @@
-
+import connectToDatabase from '../../utils/mongodb';
+import Note from '../../models/notes';
 export default async function handler(req, res) {
   if (req.method === 'DELETE') {
     try {
@@ -13,14 +14,15 @@ export default async function handler(req, res) {
       // - Find and delete the note by its unique identifier (`id`).
       // - Handle the case where the note is not found.
       // - Replace the example response below.
+      await connectToDatabase();
 
-      const noteFound = true; // Placeholder
+      const deletedNote = await Note.findByIdAndDelete(id);
 
-      if (noteFound) {
-        res.status(200).json({ message: 'Note deleted successfully' });
-      } else {
-        res.status(404).json({ error: 'Note not found' });
+      if (!deletedNote) {
+        return res.status(404).json({ error: 'Note not found' });
       }
+
+      res.status(200).json({ message: 'Note deleted successfully' });
     } catch (error) {
       console.error('Error deleting note:', error);
       res.status(500).json({ error: 'Failed to delete note' });

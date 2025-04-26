@@ -1,4 +1,5 @@
-
+import connectToDatabase from '../../utils/mongodb';
+import Note from '../../models/notes';
 export default async function handler(req, res) {
   if (req.method === 'PUT') {
     try {
@@ -16,13 +17,21 @@ export default async function handler(req, res) {
       // - Handle the case where the note is not found.
       // - Replace the example response below.
 
-      const noteFound = true; // Placeholder
+      await connectToDatabase();
 
-      if (noteFound) {
-        res.status(200).json({ message: 'Note edited successfully' });
-      } else {
-        res.status(404).json({ error: 'Note not found' });
+      const updatedNote = await Note.findByIdAndUpdate(
+        id,
+        {
+          title: noteTitle,
+        },
+        { new: true } // Return the updated document
+      );
+
+      if (!updatedNote) {
+        return res.status(404).json({ error: 'Note not found' });
       }
+
+      res.status(200).json({ message: 'Note edited successfully', note: updatedNote });
     } catch (error) {
       console.error('Error editing note:', error);
       res.status(500).json({ error: 'Failed to edit note' });

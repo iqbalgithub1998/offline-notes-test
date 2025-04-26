@@ -1,3 +1,6 @@
+import connectToDatabase from '../../utils/mongodb';
+import Note from '../../models/notes';
+
 export default async function handler(req, res) {
   if (req.method === 'GET') {
     try {
@@ -7,7 +10,9 @@ export default async function handler(req, res) {
       // - Consider sorting notes, e.g., by creation date (descending).
       // - Replace the example response below with the actual notes.
 
-      const notes = []; // Example empty array
+      await connectToDatabase();
+
+      const notes = await Note.find().sort({ createdAt: -1 });
 
       res.status(200).json(notes);
     } catch (error) {

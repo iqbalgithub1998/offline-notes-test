@@ -13,7 +13,7 @@ export interface Note {
 
   localDeleteSynced?: boolean;
   localEditSynced?: boolean;
-
+  tags: string[]; 
   title: string;
   createdAt: Date;
 }
@@ -21,16 +21,20 @@ export interface Note {
 function createServerNote(note: Note) {
   const serverNote: Note = {
     title: note.title,
+    tags: note.tags,
+    localDeleteSynced: note.localDeleteSynced,
+    localEditSynced: note.localEditSynced,
     localId: note.localId,
     createdAt: note.createdAt
   }
   return serverNote
 }
 
-export function createNote(noteTitle: string) {
+export function createNote(noteTitle: string,tags: string[] = []) {
   const note: Note = {
     title: noteTitle,
     localId: crypto.randomUUID(),
+    tags: tags,
     createdAt: new Date() // Add the current timestamp
   };
   return note;
@@ -43,6 +47,7 @@ export async function submitNote(note: Note) {
   // Check if the browser is online
   if (navigator.onLine) {
     // Send a POST request to the save-note endpoint
+    console.log('Submitting note to server:', note);
     try {
       const response = await fetch('/api/save-note', {
         method: 'POST',
@@ -51,16 +56,16 @@ export async function submitNote(note: Note) {
         },
         body: JSON.stringify(createServerNote(note)),
       });
-
+      console.log('Response:', response);
       if (response.ok) {
         console.log('Note submitted successfully (API responded)');
-        // await response.json().then(async (data) => {
+        await response.json().then(async (data) => {
           // TODO: Candidate should uncomment and potentially adjust this block
           //       once the backend API is implemented and returns a real database ID.
           //       This marks the note as synced by storing the backend ID locally.
-          // note._id = data.insertedId;
-          // await editOfflineNote(note);
-        // });
+          note._id = data.insertedId;
+          await editOfflineNote(note);
+        });
       } else {
         console.error('Failed to submit note');
       }

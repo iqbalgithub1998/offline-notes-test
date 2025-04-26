@@ -1,3 +1,5 @@
+import connectToDatabase from '../../utils/mongodb';
+import Note from '../../models/notes';
 
 export default async function handler(req, res) {
   if (req.method === 'POST') {
@@ -14,11 +16,23 @@ export default async function handler(req, res) {
       // - Save the noteData object.
       // - Retrieve the unique identifier assigned by the data store (e.g., MongoDB _id, SQL primary key).
       // - Replace the example response below with the actual assigned identifier.
-      
-      const insertedId = noteData.localId; // Placeholder: Use localId as temporary example ID
+      await connectToDatabase();
 
-      // Respond with the identifier the client expects
-      res.status(200).json({ insertedId: insertedId });
+      const newNote = new Note({
+        title: noteData.title,
+        localId: noteData.localId,
+        localDeleteSynced: noteData.localDeleteSynced || false,
+        localEditSynced: noteData.localEditSynced || false,
+        tag: noteData.tag || "",
+        createdAt: noteData.createdAt,
+      });
+
+      // console.log(newNote);
+
+      const savedNote = await newNote.save();
+
+      // Respond with the MongoDB-generated _id
+      res.status(200).json({ insertedId: savedNote._id.toString() });
     } catch (error) {
       console.error('Error saving note:', error);
       res.status(500).json({ error: 'Failed to save note' });
